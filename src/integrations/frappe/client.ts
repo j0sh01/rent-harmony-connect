@@ -625,6 +625,11 @@ export const frappeClient = {
 
   uploadFile: async (file: File, doctype: string = 'Property', docname?: string): Promise<{ success: boolean; data?: { file_url: string }; error?: string }> => {
     try {
+      const tokens = tokenStorage.getTokens();
+      if (!tokens) {
+        return { success: false, error: 'Not authenticated' };
+      }
+
       const formData = new FormData();
       formData.append('file', file);
       formData.append('is_private', '0');
@@ -636,13 +641,25 @@ export const frappeClient = {
         formData.append('docname', docname);
       }
       
+      console.log("Uploading file:", {
+        doctype,
+        docname,
+        fileName: file.name,
+        fileType: file.type,
+        fileSize: file.size
+      });
+      
       const response = await fetch(`${FRAPPE_URL}/api/method/upload_file`, {
         method: 'POST',
-        body: formData,
-        credentials: 'include'
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Accept': 'application/json'
+        },
+        body: formData
       });
       
       const data = await response.json();
+      console.log("Upload response:", data);
       
       if (!response.ok || !data.message) {
         let errorMsg = 'Failed to upload file';
