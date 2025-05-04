@@ -50,6 +50,18 @@ const tokenStorage = {
   }
 };
 
+// Add this helper function at the top of the file, after the tokenStorage object
+const getAuthHeaders = () => {
+  const tokens = tokenStorage.getTokens();
+  if (!tokens) {
+    throw new Error('Not authenticated');
+  }
+  return {
+    'Authorization': `Bearer ${tokens.access_token}`,
+    'Accept': 'application/json'
+  };
+};
+
 export const frappeClient = {
   // Generate OAuth authorization URL
   getAuthUrl: () => {
@@ -268,7 +280,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property?fields=["name","title","location","price_tzs","bedrooms","bathroom","square_meters","description","status","image"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -283,7 +295,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property/${id}`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -298,7 +310,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property/${id}`, {
         method: 'DELETE',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -318,13 +330,12 @@ export const frappeClient = {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: propertyData
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -342,11 +353,11 @@ export const frappeClient = {
   },
   
   // Rental methods
-  getRentals: async (): Promise<{ success: boolean; data?: { name: string; property: string; tenant: string; status: string; monthly_rent_tzs: number; total_rent_tzs: number; start_date: string; end_date: string; frequency: string; }[]; error?: string }> => {
+  getRentals: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?fields=["name","property","tenant","status","monthly_rent_tzs","total_rent_tzs","start_date","end_date","frequency"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -357,31 +368,11 @@ export const frappeClient = {
     }
   },
   
-  getTenantRentals: async (email: string): Promise<{ success: boolean; data?: { name: string; property: string; tenant: string; status: string; monthly_rent_tzs: number; total_rent_tzs: number; start_date: string; end_date: string; frequency: string; }[]; error?: string }> => {
-    try {
-      const response = await fetch(`${FRAPPE_URL}/api/method/rental_management.api.get_tenant_rentals?email=${encodeURIComponent(email)}`, {
-        method: 'GET',
-        credentials: 'include'
-      });
-      
-      const result = await response.json();
-      
-      if (result.message) {
-        return { success: true, data: result.message };
-      } else {
-        return { success: false, error: 'No rental data returned' };
-      }
-    } catch (error) {
-      console.error("Error fetching tenant rentals:", error);
-      return { success: false, error: 'Failed to fetch tenant rentals' };
-    }
-  },
-  
-  getRental: async (id: string): Promise<{ success: boolean; data?: { name: string; property: string; tenant: string; status: string; monthly_rent_tzs: number; total_rent_tzs: number; start_date: string; end_date: string; frequency: string; }; error?: string }> => {
+  getRental: async (id: string): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental/${id}`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -397,13 +388,12 @@ export const frappeClient = {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: rentalData
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -421,31 +411,25 @@ export const frappeClient = {
   },
   
   // Payment methods
-  getRentalPayments: async (rentalId: string): Promise<{ success: boolean; data?: { name: string; amount_tzs: number; payment_date: string; payment_method: string; receipt_number: string; docstatus: number; }[]; error?: string }> => {
+  getRentalPayments: async (rentalId: string): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
-      // Use standard Frappe API with correct field names from the doctype
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment?filters=[["rental","=","${rentalId}"]]&fields=["name","amount_tzs","payment_date","payment_method","receipt_number","docstatus"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
-      
-      if (data.data) {
-        return { success: true, data: data.data };
-      } else {
-        return { success: false, error: 'No payment data returned' };
-      }
+      return { success: true, data: data.data };
     } catch (error) {
       console.error("Error fetching rental payments:", error);
       return { success: false, error: 'Failed to fetch rental payments' };
     }
   },
-  getPayment: async (id: string): Promise<{ success: boolean; data?: { name: string; amount_tzs: number; payment_date: string; payment_method: string; receipt_number: string; docstatus: number; }; error?: string }> => {
+  getPayment: async (id: string): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment/${id}`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -457,11 +441,11 @@ export const frappeClient = {
   },
   
   // Testimonial methods
-  getActiveTestimonials: async (): Promise<{ success: boolean; data?: { name: string; content: string; author: string; is_active: boolean }[]; error?: string }> => {
+  getActiveTestimonials: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Testimonial?filters=[["is_active","=",1]]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -477,7 +461,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property?limit_page_length=0&fields=["count(name) as count"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -492,7 +476,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?filters=[["status","=","active"]]&limit_page_length=0&fields=["count(name) as count"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -507,7 +491,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/User?filters=[["role","=","Tenant"]]&limit_page_length=0&fields=["count(name) as count"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -522,7 +506,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment?fields=["sum(amount_tzs) as total"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -533,18 +517,17 @@ export const frappeClient = {
     }
   },
 
-  createProperty: async (propertyData: { title: string; location: string; price_tzs: number; bedrooms: number; bathroom: number; square_meters: number; description: string; status: string; image?: string }): Promise<{ success: boolean; data?: any; error?: string }> => {
+  createProperty: async (propertyData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Property`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: propertyData
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -561,14 +544,13 @@ export const frappeClient = {
     }
   },
 
-  createTenant: async (tenantData: { email: string; first_name: string; last_name: string; password: string; phone: string }): Promise<{ success: boolean; data?: any; error?: string }> => {
+  createTenant: async (tenantData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
-      // Create the user directly using the User doctype
       const response = await fetch(`${FRAPPE_URL}/api/resource/User`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: {
@@ -583,8 +565,7 @@ export const frappeClient = {
             ],
             phone: tenantData.phone
           }
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -603,10 +584,9 @@ export const frappeClient = {
 
   getTenants: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
-      // Use the correct filter syntax for Has Role doctype
       const response = await fetch(`${FRAPPE_URL}/api/resource/User?filters=[[\"Has Role\",\"role\",\"=\",\"Tenant\"]]&fields=["name","full_name","email","phone","enabled"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -695,8 +675,8 @@ export const frappeClient = {
       const response = await fetch(`${FRAPPE_URL}/api/resource/User/${id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: {
@@ -706,8 +686,7 @@ export const frappeClient = {
             phone: tenantData.phone,
             enabled: tenantData.enabled ? 1 : 0
           }
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -728,7 +707,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/User/${id}?fields=["name","first_name","last_name","email","phone","enabled"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -747,7 +726,7 @@ export const frappeClient = {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/method/frappe.auth.get_logged_user`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -757,10 +736,9 @@ export const frappeClient = {
       const data = await response.json();
       const email = data.message;
       
-      // Now fetch the user details using the email
       const userResponse = await fetch(`${FRAPPE_URL}/api/resource/User/${email}?fields=["name","first_name","last_name","email","phone"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!userResponse.ok) {
@@ -777,10 +755,9 @@ export const frappeClient = {
 
   updateUserProfile: async (profileData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
-      // First get the current user's email
       const userResponse = await fetch(`${FRAPPE_URL}/api/method/frappe.auth.get_logged_user`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!userResponse.ok) {
@@ -790,12 +767,11 @@ export const frappeClient = {
       const userData = await userResponse.json();
       const email = userData.message;
       
-      // Now update the user profile
       const response = await fetch(`${FRAPPE_URL}/api/resource/User/${email}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: {
@@ -803,8 +779,7 @@ export const frappeClient = {
             last_name: profileData.last_name,
             phone: profileData.phone
           }
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -826,14 +801,13 @@ export const frappeClient = {
       const response = await fetch(`${FRAPPE_URL}/api/method/frappe.core.doctype.user.user.update_password`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           old_password: oldPassword,
           new_password: newPassword
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -850,27 +824,17 @@ export const frappeClient = {
     }
   },
 
-  createRental: async (rentalData: {
-    property: string;
-    tenant: string;
-    start_date: string;
-    end_date: string;
-    monthly_rent_tzs: number;
-    status: string;
-    frequency: string;
-    total_rent_tzs: number;
-  }): Promise<{ success: boolean; data?: any; error?: string }> => {
+  createRental: async (rentalData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: rentalData
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -887,24 +851,17 @@ export const frappeClient = {
     }
   },
 
-  createPayment: async (paymentData: {
-    rental: string;
-    amount_tzs: number;
-    payment_date: string;
-    payment_method: string;
-    receipt_number: string;
-  }): Promise<{ success: boolean; data?: any; error?: string }> => {
+  createPayment: async (paymentData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: paymentData
-        }),
-        credentials: 'include'
+        })
       });
       
       const data = await response.json();
@@ -922,50 +879,35 @@ export const frappeClient = {
   },
 
   // Dashboard statistics methods
-  getDashboardStats: async (): Promise<{ 
-    success: boolean; 
-    data?: {
-      propertyCount: number;
-      activeRentalCount: number;
-      tenantCount: number;
-      pendingPaymentCount: number;
-      totalRevenue: number;
-    }; 
-    error?: string 
-  }> => {
+  getDashboardStats: async (): Promise<{ success: boolean; data?: any; error?: string }> => {
     try {
-      // Get property count
       const propertiesResult = await fetch(`${FRAPPE_URL}/api/resource/Property?limit_page_length=0`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       const propertiesData = await propertiesResult.json();
       
-      // Get active rental count
       const rentalsResult = await fetch(`${FRAPPE_URL}/api/resource/Rental?filters=[["status","=","Active"]]&limit_page_length=0`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       const rentalsData = await rentalsResult.json();
       
-      // Get tenant count
       const tenantsResult = await fetch(`${FRAPPE_URL}/api/resource/User?filters=[[\"Has Role\",\"role\",\"=\",\"Tenant\"]]&limit_page_length=0`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       const tenantsData = await tenantsResult.json();
       
-      // Get pending payments count (docstatus 0 = Draft)
       const pendingPaymentsResult = await fetch(`${FRAPPE_URL}/api/resource/Payment?filters=[["docstatus","=",0]]&limit_page_length=0`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       const pendingPaymentsData = await pendingPaymentsResult.json();
       
-      // Get total revenue (docstatus 1 = Submitted)
       const revenueResult = await fetch(`${FRAPPE_URL}/api/resource/Payment?filters=[["docstatus","=",1]]&fields=["sum(amount_tzs) as total"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       const revenueData = await revenueResult.json();
       
@@ -986,19 +928,11 @@ export const frappeClient = {
   },
 
   // Get all payments
-  getAllPayments: async (): Promise<{ success: boolean; data?: Array<{
-    name: string;
-    rental: string;
-    amount_tzs: number;
-    payment_date: string;
-    payment_method: string;
-    receipt_number: string;
-    docstatus: number;
-  }>; error?: string }> => {
+  getAllPayments: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment?fields=["name","rental","amount_tzs","payment_date","payment_method","receipt_number","docstatus"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -1009,20 +943,11 @@ export const frappeClient = {
     }
   },
 
-  getPendingPayments: async (): Promise<{ success: boolean; data?: Array<{
-    name: string;
-    rental: string;
-    amount_tzs: number;
-    payment_date: string;
-    payment_method: string;
-    receipt_number: string;
-    docstatus: number;
-  }>; error?: string }> => {
+  getPendingPayments: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
-      // Fetch payments with docstatus=0 (Draft status)
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment?filters=[["docstatus","=",0]]&fields=["name","rental","amount_tzs","payment_date","payment_method","receipt_number","docstatus"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
@@ -1035,10 +960,9 @@ export const frappeClient = {
 
   submitPayment: async (paymentId: string): Promise<{ success: boolean; error?: string }> => {
     try {
-      // First, get the document
       const getResponse = await fetch(`${FRAPPE_URL}/api/resource/Payment/${paymentId}`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const docData = await getResponse.json();
@@ -1047,21 +971,18 @@ export const frappeClient = {
         return { success: false, error: 'Failed to retrieve payment document' };
       }
       
-      // Update the document with docstatus = 1 (submitted)
       const doc = docData.data;
       doc.docstatus = 1;
       
-      // Update the document
       const updateResponse = await fetch(`${FRAPPE_URL}/api/resource/Payment/${paymentId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
           data: doc
-        }),
-        credentials: 'include'
+        })
       });
       
       const updateData = await updateResponse.json();
@@ -1096,12 +1017,11 @@ export const frappeClient = {
   },
 
   // Alternative method that doesn't rely on custom API endpoint
-  getTenantRentalsByEmail: async (email: string): Promise<{ success: boolean; data?: { name: string; property: string; tenant: string; status: string; monthly_rent_tzs: number; total_rent_tzs: number; start_date: string; end_date: string; frequency: string; }[]; error?: string }> => {
+  getTenantRentalsByEmail: async (email: string): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
-      // Use standard API to get all rentals and filter by tenant
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?filters=[["tenant","=","${email}"]]&fields=["name","property","tenant","status","monthly_rent_tzs","total_rent_tzs","start_date","end_date","frequency"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       if (!response.ok) {
@@ -1119,11 +1039,11 @@ export const frappeClient = {
   },
   
   // Alternative method for payments that doesn't rely on custom API
-  getPaymentsByRental: async (rentalId: string): Promise<{ success: boolean; data?: { name: string; amount_tzs: number; payment_date: string; payment_method: string; receipt_number: string; docstatus: number; }[]; error?: string }> => {
+  getPaymentsByRental: async (rentalId: string): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
       const response = await fetch(`${FRAPPE_URL}/api/resource/Payment?filters=[["rental","=","${rentalId}"]]&fields=["name","amount_tzs","payment_date","payment_method","receipt_number","docstatus"]`, {
         method: 'GET',
-        credentials: 'include'
+        headers: getAuthHeaders()
       });
       
       const data = await response.json();
