@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -60,20 +59,17 @@ const Auth = () => {
 
         // Determine user role based on Frappe roles
         let userRole = 'user'; // Default role
-        let redirectPath = '/auth'; // Default redirect
+        let redirectPath = '/auth';
 
-        // Check if user has both System Manager and Tenant roles
-        if (hasSystemManagerRole && hasTenantRole) {
+        // If user has Tenant role, they should go to Tenant Dashboard regardless of other roles
+        if (hasTenantRole) {
           userRole = 'tenant';
           redirectPath = '/tenant-dashboard';
         } 
-        // Admin roles take precedence in other cases
+        // If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
         else if (hasLandlordRole || hasSystemManagerRole) {
           userRole = 'admin';
           redirectPath = '/admin-dashboard';
-        } else if (hasTenantRole) {
-          userRole = 'tenant';
-          redirectPath = '/tenant-dashboard';
         }
 
         console.log("Assigned user role:", userRole);

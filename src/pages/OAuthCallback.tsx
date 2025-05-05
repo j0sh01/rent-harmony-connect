@@ -50,12 +50,15 @@ const OAuthCallback = () => {
             let userRole = 'user';
             let redirectPath = '/auth';
             
-            if (roles.includes('System Manager') || roles.includes('Landlord')) {
-              userRole = 'admin';
-              redirectPath = '/admin-dashboard';
-            } else if (roles.includes('Tenant')) {
+            // If user has Tenant role, they should go to Tenant Dashboard regardless of other roles
+            if (roles.includes('Tenant')) {
               userRole = 'tenant';
               redirectPath = '/tenant-dashboard';
+            } 
+            // If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
+            else if (roles.includes('System Manager') || roles.includes('Landlord')) {
+              userRole = 'admin';
+              redirectPath = '/admin-dashboard';
             }
             
             console.log("Assigned role:", userRole);
