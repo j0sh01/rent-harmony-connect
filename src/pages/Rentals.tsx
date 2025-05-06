@@ -7,6 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
+import Sidebar from "@/components/ui/Sidebar";
+
 
 interface Rental {
   name: string;
@@ -79,91 +81,94 @@ const Rentals: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Rental Management</h1>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => navigate('/admin-dashboard')}>
-              Back to Dashboard
-            </Button>
-            <Button 
-              onClick={() => navigate('/rentals/create')}
-              className="bg-harmony-500 hover:bg-harmony-600"
-            >
-              Create New Rental
-            </Button>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <Sidebar role="admin" />
+      <div className="ml-[240px]">
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Rental Management</h1>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => navigate('/admin-dashboard')}>
+                Back to Dashboard
+              </Button>
+              <Button 
+                onClick={() => navigate('/rentals/create')}
+                className="bg-harmony-500 hover:bg-harmony-600"
+              >
+                Create New Rental
+              </Button>
+            </div>
           </div>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>All Rentals</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="p-6 text-center">Loading rentals...</div>
-            ) : rentals.length === 0 ? (
-              <div className="p-6 text-center">
-                <p>No rentals found.</p>
-                <Button 
-                  onClick={() => navigate('/rentals/create')}
-                  className="mt-4 bg-harmony-500 hover:bg-harmony-600"
-                >
-                  Create Your First Rental
-                </Button>
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Property</TableHead>
-                    <TableHead>Tenant</TableHead>
-                    <TableHead>Period</TableHead>
-                    <TableHead>Monthly Rent</TableHead>
-                    <TableHead>Total Rent</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rentals.map((rental) => (
-                    <TableRow key={rental.name}>
-                      <TableCell>{rental.property}</TableCell>
-                      <TableCell>{rental.tenant}</TableCell>
-                      <TableCell>
-                        {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
-                      </TableCell>
-                      <TableCell>{formatCurrency(rental.monthly_rent_tzs)}</TableCell>
-                      <TableCell>{formatCurrency(rental.total_rent_tzs)}</TableCell>
-                      <TableCell>{getStatusBadge(rental.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/rentals/${rental.name}`)}
-                          >
-                            View
-                          </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => navigate(`/rentals/edit/${rental.name}`)}
-                          >
-                            Edit
-                          </Button>
-                        </div>
-                      </TableCell>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>All Rentals</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="p-6 text-center">Loading rentals...</div>
+              ) : rentals.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p>No rentals found.</p>
+                  <Button 
+                    onClick={() => navigate('/rentals/create')}
+                    className="mt-4 bg-harmony-500 hover:bg-harmony-600"
+                  >
+                    Create Your First Rental
+                  </Button>
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Property</TableHead>
+                      <TableHead>Tenant</TableHead>
+                      <TableHead>Period</TableHead>
+                      <TableHead>Monthly Rent</TableHead>
+                      <TableHead>Total Rent</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+                  </TableHeader>
+                  <TableBody>
+                    {rentals.map((rental) => (
+                      <TableRow key={rental.name}>
+                        <TableCell>{rental.property}</TableCell>
+                        <TableCell>{rental.tenant}</TableCell>
+                        <TableCell>
+                          {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
+                        </TableCell>
+                        <TableCell>{formatCurrency(rental.monthly_rent_tzs)}</TableCell>
+                        <TableCell>{formatCurrency(rental.total_rent_tzs)}</TableCell>
+                        <TableCell>{getStatusBadge(rental.status)}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/rentals/${rental.name}`)}
+                            >
+                              View
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => navigate(`/rentals/edit/${rental.name}`)}
+                            >
+                              Edit
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };

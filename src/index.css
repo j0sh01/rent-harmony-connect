@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 98%;
     --foreground: 222.2 84% 4.9%;
 
     --card: 0 0% 100%;
@@ -14,7 +14,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 196 100% 40%;
+    --primary: 196 100% 42%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -23,17 +23,27 @@
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 196 100% 95%;
-    --accent-foreground: 196 100% 30%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 196 100% 40%;
+    --ring: 222.2 84% 4.9%;
 
-    --radius: 0.75rem;
+    --radius: 0.5rem;
+
+    /* Sidebar specific variables */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222.2 84% 4.9%;
+    --sidebar-primary: 196 100% 42%;
+    --sidebar-primary-foreground: 210 40% 98%;
+    --sidebar-accent: 196 100% 95%;
+    --sidebar-accent-foreground: 196 100% 42%;
+    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-ring: 196 100% 42%;
   }
 
   .dark {
@@ -46,7 +56,7 @@
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 196 100% 50%;
+    --primary: 196 100% 42%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -55,7 +65,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 196 100% 40%;
+    --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -64,6 +74,16 @@
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
     --ring: 212.7 26.8% 83.9%;
+
+    /* Sidebar specific variables for dark mode */
+    --sidebar-background: 222.2 47.4% 11.2%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 196 100% 42%;
+    --sidebar-primary-foreground: 222.2 47.4% 11.2%;
+    --sidebar-accent: 196 100% 20%;
+    --sidebar-accent-foreground: 196 100% 80%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 196 100% 42%;
   }
 }
 
@@ -71,13 +91,9 @@
   * {
     @apply border-border;
   }
-
   body {
     @apply bg-background text-foreground;
-  }
-
-  h1, h2, h3, h4, h5, h6 {
-    @apply font-heading font-semibold;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
@@ -97,4 +113,56 @@
 
 .card-hover:hover {
   @apply shadow-lg;
+}
+
+/* Sidebar layout adjustments */
+.sidebar-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar-layout-main {
+  flex: 1;
+  margin-left: var(--sidebar-width, 16rem);
+  transition: margin-left 0.3s ease;
+}
+
+.sidebar-layout-main.collapsed {
+  margin-left: var(--sidebar-width-icon, 3rem);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar-layout-main {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .sidebar-layout-main.collapsed {
+    margin-left: 0;
+  }
+}
+
+/* Ensure content doesn't get squished */
+.dashboard-content {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+/* Card hover effects */
+.dashboard-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.dashboard-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* Ensure proper spacing in grid layouts */
+.grid-responsive {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
 }

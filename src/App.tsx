@@ -76,155 +76,24 @@ const App = () => (
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
-            <Route path="/about" element={<About />} />
-            <Route path="/landlord-info" element={<LandlordInfo />} />
-            <Route path="/tenant-info" element={<TenantInfo />} />
-            <Route 
-              path="/admin-dashboard" 
-              element={
-                <AdminRoute>
-                  <AdminDashboard />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/tenant-dashboard" 
-              element={
-                <TenantRoute>
-                  <TenantDashboard />
-                </TenantRoute>
-              } 
-            />
-            <Route 
-              path="/properties" 
-              element={
-                <AdminRoute>
-                  <Properties />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/add-property" 
-              element={
-                <AdminRoute>
-                  <AddProperty />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/properties/edit/:id" 
-              element={
-                <PrivateRoute>
-                  <EditProperty />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/users" 
-              element={
-                <AdminRoute>
-                  <Users />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/tenants/create" 
-              element={
-                <AdminRoute>
-                  <AddTenant />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/tenants/edit/:id" 
-              element={
-                <AdminRoute>
-                  <EditTenant />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/" 
-              element={
-                <PrivateRoute>
-                  <Index />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/profile" 
-              element={
-                <PrivateRoute>
-                  <Profile />
-                </PrivateRoute>
-              } 
-            />
-            <Route 
-              path="/properties/available" 
-              element={
-                <AdminRoute>
-                  <AvailableProperties />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/users/verify" 
-              element={
-                <AdminRoute>
-                  <VerifyTenants />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/rentals" 
-              element={
-                <AdminRoute>
-                  <Rentals />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/rentals/:id" 
-              element={
-                <AdminRoute>
-                  <ViewRental />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/rentals/edit/:id" 
-              element={
-                <AdminRoute>
-                  <EditRental />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/rentals/expiring" 
-              element={
-                <AdminRoute>
-                  <ExpiringLeases />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/payments" 
-              element={
-                <AdminRoute>
-                  <Payments />
-                </AdminRoute>
-              } 
-            />
-            <Route 
-              path="/payments/pending" 
-              element={
-                <AdminRoute>
-                  <PendingPayments />
-                </AdminRoute>
-              } 
-            />
             <Route path="/auth/callback" element={<OAuthCallback />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/tenant-dashboard" element={<TenantDashboard />} />
+            <Route path="/properties" element={<Properties />} />
+            <Route path="/add-property" element={<AddProperty />} />
+            <Route path="/properties/edit/:id" element={<EditProperty />} />
+            <Route path="/users" element={<Users />} />
+            <Route path="/tenants/create" element={<AddTenant />} />
+            <Route path="/tenants/:id" element={<EditTenant />} />
+            <Route path="/rentals" element={<Rentals />} />
+            <Route path="/rentals/expiring" element={<ExpiringLeases />} />
+            <Route path="/rentals/:id" element={<ViewRental />} />
+            <Route path="/rentals/edit/:id" element={<EditRental />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/settings" element={<Profile />} />
+            <Route path="/help" element={<About />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/ui/Sidebar"; // Import Sidebar
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
@@ -145,150 +146,153 @@ const Profile: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">My Profile</h1>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate(user?.role === 'admin' ? '/admin-dashboard' : '/tenant-dashboard')}
-          >
-            Back to Dashboard
-          </Button>
-        </div>
+      <Sidebar role={user?.role || 'admin'} /> {/* Add Sidebar */}
+      <div className="ml-[240px]"> {/* Add margin to accommodate sidebar */}
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">My Profile</h1>
+            <Button 
+              variant="outline" 
+              onClick={() => navigate(user?.role === 'admin' ? '/admin-dashboard' : '/tenant-dashboard')}
+            >
+              Back to Dashboard
+            </Button>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Profile Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Profile Information</CardTitle>
-              <CardDescription>Update your personal details</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-4">Loading profile information...</div>
-              ) : (
-                <form onSubmit={handleUpdateProfile} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first_name">First Name</Label>
-                    <Input 
-                      id="first_name" 
-                      name="first_name" 
-                      value={profile.first_name} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="last_name">Last Name</Label>
-                    <Input 
-                      id="last_name" 
-                      name="last_name" 
-                      value={profile.last_name} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      name="email" 
-                      type="email" 
-                      value={profile.email} 
-                      disabled 
-                    />
-                    <p className="text-sm text-gray-500">Email cannot be changed</p>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input 
-                      id="phone" 
-                      name="phone" 
-                      value={profile.phone} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      type="submit" 
-                      className="bg-harmony-500 hover:bg-harmony-600"
-                      disabled={saving}
-                    >
-                      {saving ? "Saving..." : "Update Profile"}
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Profile Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile Information</CardTitle>
+                <CardDescription>Update your personal details</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-4">Loading profile information...</div>
+                ) : (
+                  <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input 
+                        id="first_name" 
+                        name="first_name" 
+                        value={profile.first_name} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input 
+                        id="last_name" 
+                        name="last_name" 
+                        value={profile.last_name} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        value={profile.email} 
+                        disabled 
+                      />
+                      <p className="text-sm text-gray-500">Email cannot be changed</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input 
+                        id="phone" 
+                        name="phone" 
+                        value={profile.phone} 
+                        onChange={handleChange} 
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end pt-4">
+                      <Button 
+                        type="submit" 
+                        className="bg-harmony-500 hover:bg-harmony-600"
+                        disabled={saving}
+                      >
+                        {saving ? "Saving..." : "Update Profile"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
 
-          {/* Change Password */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Change Password</CardTitle>
-              <CardDescription>Update your account password</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {loading ? (
-                <div className="text-center py-4">Loading...</div>
-              ) : (
-                <form onSubmit={handleChangePassword} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="current_password">Current Password</Label>
-                    <Input 
-                      id="current_password" 
-                      name="current_password" 
-                      type="password" 
-                      value={profile.current_password} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="new_password">New Password</Label>
-                    <Input 
-                      id="new_password" 
-                      name="new_password" 
-                      type="password" 
-                      value={profile.new_password} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="confirm_password">Confirm New Password</Label>
-                    <Input 
-                      id="confirm_password" 
-                      name="confirm_password" 
-                      type="password" 
-                      value={profile.confirm_password} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="flex justify-end pt-4">
-                    <Button 
-                      type="submit" 
-                      className="bg-harmony-500 hover:bg-harmony-600"
-                      disabled={saving}
-                    >
-                      {saving ? "Changing..." : "Change Password"}
-                    </Button>
-                  </div>
-                </form>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
+            {/* Change Password */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Change Password</CardTitle>
+                <CardDescription>Update your account password</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {loading ? (
+                  <div className="text-center py-4">Loading...</div>
+                ) : (
+                  <form onSubmit={handleChangePassword} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="current_password">Current Password</Label>
+                      <Input 
+                        id="current_password" 
+                        name="current_password" 
+                        type="password" 
+                        value={profile.current_password} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="new_password">New Password</Label>
+                      <Input 
+                        id="new_password" 
+                        name="new_password" 
+                        type="password" 
+                        value={profile.new_password} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="confirm_password">Confirm New Password</Label>
+                      <Input 
+                        id="confirm_password" 
+                        name="confirm_password" 
+                        type="password" 
+                        value={profile.confirm_password} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="flex justify-end pt-4">
+                      <Button 
+                        type="submit" 
+                        className="bg-harmony-500 hover:bg-harmony-600"
+                        disabled={saving}
+                      >
+                        {saving ? "Changing..." : "Change Password"}
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
