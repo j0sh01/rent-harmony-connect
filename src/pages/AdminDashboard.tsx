@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/DashboardLayout';
 import { Users, Building, CreditCard, FileText, AlertTriangle, Plus } from 'lucide-react';
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 interface DashboardSummary {
   totalTenants: number;
@@ -13,6 +14,7 @@ interface DashboardSummary {
 }
 
 interface UpcomingPayment {
+  name: string; // Add payment ID
   tenant: string;
   property: string;
   unit?: string;
@@ -46,8 +48,25 @@ const AdminDashboard = () => {
             activeRentals: dashboardData.data.activeRentalCount || 0
           });
           
-          // If there's no upcoming payments data, use an empty array
-          setUpcomingPayments(dashboardData.data.upcomingPayments || []);
+          // Fetch pending payments (docstatus=0)
+          const pendingPaymentsResult = await frappeClient.getPendingPayments();
+          if (pendingPaymentsResult.success && pendingPaymentsResult.data) {
+            console.log("Pending payments data:", pendingPaymentsResult.data);
+            
+            // Transform the data to match UpcomingPayment interface
+            const upcomingPaymentsData = pendingPaymentsResult.data.map(payment => ({
+              name: payment.name, // Add payment ID for navigation
+              tenant: payment.tenant_name || payment.tenant || "Unknown Tenant",
+              property: payment.property_name || payment.property || payment.rental || "Unknown Property",
+              amount: payment.amount_tzs,
+              dueDate: payment.payment_date,
+              month: new Date(payment.payment_date).toLocaleString('default', { month: 'long' })
+            }));
+            
+            setUpcomingPayments(upcomingPaymentsData);
+          } else {
+            setUpcomingPayments([]);
+          }
         } else {
           toast.error(dashboardData.error || "Failed to fetch dashboard data");
         }
@@ -145,17 +164,44 @@ const AdminDashboard = () => {
           <div className="p-6">
             {activeTab === 'payments' ? (
               upcomingPayments.length > 0 ? (
-                <div>
+                <div className="space-y-4">
                   {upcomingPayments.map((payment, index) => (
-                    <div key={index} className="mb-4 last:mb-0">
-                      <p>{payment.tenant}</p>
-                      <p className="text-sm text-gray-500">{payment.property}</p>
+                    <div key={index} className="flex justify-between items-center p-3 border rounded-md hover:bg-gray-50">
+                      <div>
+                        <p className="font-medium">{payment.tenant}</p>
+                        <p className="text-sm text-gray-500">{payment.property}</p>
+                        <p className="text-xs text-gray-400">Due: {new Date(payment.dueDate).toLocaleDateString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-[#00b3d7]">
+                          TSh {payment.amount.toLocaleString()}
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-1 text-xs"
+                          onClick={() => navigate('/pending-payments')}
+                        >
+                          Review
+                        </Button>
+                      </div>
                     </div>
                   ))}
+                  {upcomingPayments.length > 5 && (
+                    <div className="text-center pt-2">
+                      <Button 
+                        variant="link" 
+                        onClick={() => navigate('/pending-payments')}
+                        className="text-[#00b3d7]"
+                      >
+                        View all pending payments
+                      </Button>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="text-center py-8 text-gray-500">
-                  No upcoming payments
+                  No pending payments
                 </div>
               )
             ) : (

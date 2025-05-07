@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/ui/Sidebar";
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 
@@ -206,216 +208,219 @@ const ViewRental: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Rental Details</h1>
-          <div className="flex space-x-2">
-            <Button variant="outline" onClick={() => navigate('/rentals')}>
-              Back to Rentals
-            </Button>
-            {rental && (
-              <>
-                <Button 
-                  onClick={() => navigate(`/rentals/edit/${rental.name}`)}
-                  className="bg-harmony-500 hover:bg-harmony-600"
-                >
-                  Edit Rental
-                </Button>
-                <Button 
-                  onClick={() => setPaymentDialogOpen(true)}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  Record Payment
-                </Button>
-              </>
-            )}
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <Sidebar role="admin" />
+      <div className="ml-[240px]">
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Rental Details</h1>
+            <div className="flex space-x-2">
+              <Button variant="outline" onClick={() => navigate('/rentals')}>
+                Back to Rentals
+              </Button>
+              {rental && (
+                <>
+                  <Button 
+                    onClick={() => navigate(`/rentals/edit/${rental.name}`)}
+                    className="bg-harmony-500 hover:bg-harmony-600"
+                  >
+                    Edit Rental
+                  </Button>
+                  <Button 
+                    onClick={() => setPaymentDialogOpen(true)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Record Payment
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-        
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Rental Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="p-6 text-center">Loading rental details...</div>
-            ) : rental ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Property & Tenant</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Property</h3>
-                      <p className="mt-1 text-lg">{rental.property}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Tenant</h3>
-                      <p className="mt-1 text-lg">{rental.tenant}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Status</h3>
-                      <div className="mt-1">
-                        <Badge className={
-                          rental.status === 'Active' ? 'bg-green-100 text-green-800' :
-                          rental.status === 'Expired' ? 'bg-red-100 text-red-800' :
-                          rental.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-gray-100 text-gray-800'
-                        }>
-                          {rental.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h2 className="text-xl font-semibold mb-4">Rental Terms</h2>
-                  <div className="space-y-4">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Rental Period</h3>
-                      <p className="mt-1 text-lg">
-                        {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
-                      </p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Monthly Rent</h3>
-                      <p className="mt-1 text-lg">{formatCurrency(rental.monthly_rent_tzs)}</p>
-                    </div>
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-500">Total Rent</h3>
-                      <p className="mt-1 text-lg">{rental.total_rent_tzs ? formatCurrency(rental.total_rent_tzs) : 'N/A'}</p>
-                    </div>
-                    {rental.frequency && (
+          
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Rental Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="p-6 text-center">Loading rental details...</div>
+              ) : rental ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4">Property & Tenant</h2>
+                    <div className="space-y-4">
                       <div>
-                        <h3 className="text-sm font-medium text-gray-500">Rental Frequency (Months)</h3>
-                        <p className="mt-1 text-lg">{rental.frequency}</p>
+                        <h3 className="text-sm font-medium text-gray-500">Property</h3>
+                        <p className="mt-1 text-lg">{rental.property}</p>
                       </div>
-                    )}
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Tenant</h3>
+                        <p className="mt-1 text-lg">{rental.tenant}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                        <div className="mt-1">
+                          <Badge className={
+                            rental.status === 'Active' ? 'bg-green-100 text-green-800' :
+                            rental.status === 'Expired' ? 'bg-red-100 text-red-800' :
+                            rental.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }>
+                            {rental.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <h2 className="text-xl font-semibold mb-4">Rental Terms</h2>
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Rental Period</h3>
+                        <p className="mt-1 text-lg">
+                          {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Monthly Rent</h3>
+                        <p className="mt-1 text-lg">{formatCurrency(rental.monthly_rent_tzs)}</p>
+                      </div>
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-500">Total Rent</h3>
+                        <p className="mt-1 text-lg">{rental.total_rent_tzs ? formatCurrency(rental.total_rent_tzs) : 'N/A'}</p>
+                      </div>
+                      {rental.frequency && (
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-500">Rental Frequency (Months)</h3>
+                          <p className="mt-1 text-lg">{rental.frequency}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <div className="p-6 text-center">Rental not found</div>
-            )}
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Payment History</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {payments.length === 0 ? (
-              <div className="p-6 text-center">
-                <p>No payments recorded yet.</p>
-                <Button 
-                  onClick={() => setPaymentDialogOpen(true)}
-                  className="mt-4 bg-green-600 hover:bg-green-700"
-                >
-                  Record First Payment
-                </Button>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full border-collapse">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2 px-4">Date</th>
-                      <th className="text-left py-2 px-4">Amount</th>
-                      <th className="text-left py-2 px-4">Method</th>
-                      <th className="text-left py-2 px-4">Receipt #</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {payments.map((payment) => (
-                      <tr key={`${payment.rental}-${payment.receipt_number}`} className="border-b">
-                        <td className="py-2 px-4">{formatDate(payment.payment_date)}</td>
-                        <td className="py-2 px-4">{formatCurrency(payment.amount_tzs)}</td>
-                        <td className="py-2 px-4">{payment.payment_method}</td>
-                        <td className="py-2 px-4">{payment.receipt_number}</td>
+              ) : (
+                <div className="p-6 text-center">Rental not found</div>
+              )}
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {payments.length === 0 ? (
+                <div className="p-6 text-center">
+                  <p>No payments recorded yet.</p>
+                  <Button 
+                    onClick={() => setPaymentDialogOpen(true)}
+                    className="mt-4 bg-green-600 hover:bg-green-700"
+                  >
+                    Record First Payment
+                  </Button>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-4">Date</th>
+                        <th className="text-left py-2 px-4">Amount</th>
+                        <th className="text-left py-2 px-4">Method</th>
+                        <th className="text-left py-2 px-4">Receipt #</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {payments.map((payment) => (
+                        <tr key={`${payment.rental}-${payment.receipt_number}`} className="border-b">
+                          <td className="py-2 px-4">{formatDate(payment.payment_date)}</td>
+                          <td className="py-2 px-4">{formatCurrency(payment.amount_tzs)}</td>
+                          <td className="py-2 px-4">{payment.payment_method}</td>
+                          <td className="py-2 px-4">{payment.receipt_number}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+        
+        <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Record Payment</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="amount_tzs">Payment Amount (TZS)</Label>
+                <Input
+                  id="amount_tzs"
+                  name="amount_tzs"
+                  type="number"
+                  value={paymentForm.amount_tzs}
+                  onChange={handlePaymentChange}
+                  required
+                />
               </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
-      
-      <Dialog open={paymentDialogOpen} onOpenChange={setPaymentDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Record Payment</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="amount_tzs">Payment Amount (TZS)</Label>
-              <Input
-                id="amount_tzs"
-                name="amount_tzs"
-                type="number"
-                value={paymentForm.amount_tzs}
-                onChange={handlePaymentChange}
-                required
-              />
+              
+              <div className="space-y-2">
+                <Label htmlFor="payment_date">Payment Date</Label>
+                <Input
+                  id="payment_date"
+                  name="payment_date"
+                  type="date"
+                  value={paymentForm.payment_date}
+                  onChange={handlePaymentDateChange}
+                  required
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="payment_method">Payment Method</Label>
+                <Select
+                  value={paymentForm.payment_method}
+                  onValueChange={handlePaymentMethodChange}
+                >
+                  <SelectTrigger id="payment_method">
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cash">Cash</SelectItem>
+                    <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
+                    <SelectItem value="Mobile Money">Mobile Money</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="receipt_number">Receipt Number</Label>
+                <Input
+                  id="receipt_number"
+                  name="receipt_number"
+                  type="text"
+                  value={paymentForm.receipt_number}
+                  onChange={handlePaymentChange}
+                  required
+                />
+              </div>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="payment_date">Payment Date</Label>
-              <Input
-                id="payment_date"
-                name="payment_date"
-                type="date"
-                value={paymentForm.payment_date}
-                onChange={handlePaymentDateChange}
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="payment_method">Payment Method</Label>
-              <Select
-                value={paymentForm.payment_method}
-                onValueChange={handlePaymentMethodChange}
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleRecordPayment}
+                className="bg-green-600 hover:bg-green-700"
+                disabled={submitting}
               >
-                <SelectTrigger id="payment_method">
-                  <SelectValue placeholder="Select payment method" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="Mobile Money">Mobile Money</SelectItem>
-                </SelectContent>
-              </Select>
+                {submitting ? "Processing..." : "Record Payment"}
+              </Button>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="receipt_number">Receipt Number</Label>
-              <Input
-                id="receipt_number"
-                name="receipt_number"
-                type="text"
-                value={paymentForm.receipt_number}
-                onChange={handlePaymentChange}
-                required
-              />
-            </div>
-          </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => setPaymentDialogOpen(false)}>Cancel</Button>
-            <Button 
-              onClick={handleRecordPayment}
-              className="bg-green-600 hover:bg-green-700"
-              disabled={submitting}
-            >
-              {submitting ? "Processing..." : "Record Payment"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

@@ -29,6 +29,7 @@ import LandlordInfo from "./pages/LandlordInfo";
 import TenantInfo from "./pages/TenantInfo";
 import PendingPayments from './pages/PendingPayments';
 import OAuthCallback from "./pages/OAuthCallback";
+import TenantDetail from "./pages/TenantDetail";
 
 const queryClient = new QueryClient();
 
@@ -86,7 +87,7 @@ const App = () => (
             <Route path="/properties/edit/:id" element={<EditProperty />} />
             <Route path="/users" element={<Users />} />
             <Route path="/tenants/create" element={<AddTenant />} />
-            <Route path="/tenants/:id" element={<EditTenant />} />
+            <Route path="/tenants/:id" element={<TenantDetail />} />
             <Route path="/rentals" element={<Rentals />} />
             <Route path="/rentals/expiring" element={<ExpiringLeases />} />
             <Route path="/rentals/:id" element={<ViewRental />} />
@@ -94,6 +95,7 @@ const App = () => (
             <Route path="/payments" element={<Payments />} />
             <Route path="/settings" element={<Profile />} />
             <Route path="/help" element={<About />} />
+            <Route path="/pending-payments" element={<PendingPayments />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

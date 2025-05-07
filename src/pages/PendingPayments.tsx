@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/ui/Sidebar";
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 
@@ -81,67 +82,70 @@ const PendingPayments: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Pending Payments</h1>
-        </div>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <Sidebar role="admin" />
+      <div className="ml-[240px]">
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Pending Payments</h1>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Payments Awaiting Submission</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center p-6">
-                <p>Loading pending payments...</p>
-              </div>
-            ) : payments.length === 0 ? (
-              <div className="text-center p-6">
-                <p>No pending payments found.</p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Receipt #</TableHead>
-                      <TableHead>Rental</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {payments.map((payment) => (
-                      <TableRow key={payment.name}>
-                        <TableCell>{payment.receipt_number}</TableCell>
-                        <TableCell>{payment.rental}</TableCell>
-                        <TableCell>{formatDate(payment.payment_date)}</TableCell>
-                        <TableCell>{formatCurrency(payment.amount_tzs)}</TableCell>
-                        <TableCell>{payment.payment_method}</TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            variant="default" 
-                            size="sm"
-                            className="bg-green-600 hover:bg-green-700"
-                            onClick={() => handleSubmitPayment(payment.name)}
-                            disabled={submitting === payment.name}
-                          >
-                            {submitting === payment.name ? "Submitting..." : "Submit Payment"}
-                          </Button>
-                        </TableCell>
+          <Card>
+            <CardHeader>
+              <CardTitle>Payments Awaiting Submission</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="flex justify-center p-6">
+                  <p>Loading pending payments...</p>
+                </div>
+              ) : payments.length === 0 ? (
+                <div className="text-center p-6">
+                  <p>No pending payments found.</p>
+                </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Receipt #</TableHead>
+                        <TableHead>Rental</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Method</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+                    </TableHeader>
+                    <TableBody>
+                      {payments.map((payment) => (
+                        <TableRow key={payment.name}>
+                          <TableCell>{payment.receipt_number}</TableCell>
+                          <TableCell>{payment.rental}</TableCell>
+                          <TableCell>{formatDate(payment.payment_date)}</TableCell>
+                          <TableCell>{formatCurrency(payment.amount_tzs)}</TableCell>
+                          <TableCell>{payment.payment_method}</TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleSubmitPayment(payment.name)}
+                              disabled={submitting === payment.name}
+                            >
+                              {submitting === payment.name ? "Submitting..." : "Submit Payment"}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };
