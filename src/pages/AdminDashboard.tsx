@@ -54,6 +54,16 @@ const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("payments");
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
 
+  // Add this function to format currency values
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-TZ', {
+      style: 'currency',
+      currency: 'TZS',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -165,7 +175,7 @@ const AdminDashboard = () => {
               <CreditCard className="h-6 w-6 text-[#00b3d7]" />
             </div>
             <div>
-              <p className="text-3xl font-bold">TSh {summary.revenue}</p>
+              <p className="text-3xl font-bold">{formatCurrency(summary.revenue)}</p>
               <p className="text-sm text-gray-500">Total Collected</p>
             </div>
           </div>
