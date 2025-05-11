@@ -1053,4 +1053,97 @@ export const frappeClient = {
       return { success: false, error: 'Failed to fetch payments' };
     }
   },
+
+  getRecentActivities: async (limit: number = 10): Promise<{ success: boolean; data?: any[]; error?: string }> => {
+    try {
+      // First, fetch recent activities from various doctype audit logs
+      // We'll combine activities from different sources: payments, rentals, properties, and users
+
+      // Get recent payments
+      const paymentsResponse = await fetch(`${FRAPPE_URL}/api/resource/Payment?fields=["name","creation","modified","modified_by","rental","amount_tzs","payment_date"]&limit=${limit}&order_by=creation desc`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      const paymentsData = await paymentsResponse.json();
+      
+      // Get recent rentals
+      const rentalsResponse = await fetch(`${FRAPPE_URL}/api/resource/Rental?fields=["name","creation","modified","modified_by","property","tenant","status","start_date","end_date"]&limit=${limit}&order_by=creation desc`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      const rentalsData = await rentalsResponse.json();
+      
+      // Get recent property changes
+      const propertiesResponse = await fetch(`${FRAPPE_URL}/api/resource/Property?fields=["name","creation","modified","modified_by","title","status"]&limit=${limit}&order_by=creation desc`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      const propertiesData = await propertiesResponse.json();
+      
+      // Get recent user changes (tenants)
+      const usersResponse = await fetch(`${FRAPPE_URL}/api/resource/User?filters=[[\"Has Role\",\"role\",\"=\",\"Tenant\"]]&fields=["name","creation","modified","modified_by","full_name"]&limit=${limit}&order_by=creation desc`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+      });
+      const usersData = await usersResponse.json();
+      
+      // Transform payment data into activity items
+      const paymentActivities = (paymentsData.data || []).map(payment => ({
+        id: `payment-${payment.name}`,
+        type: 'payment',
+        title: `Payment Recorded: ${payment.name}`,
+        description: `Payment of TZS ${payment.amount_tzs.toLocaleString()} for rental ${payment.rental} on ${new Date(payment.payment_date).toLocaleDateString()}`,
+        timestamp: payment.creation || payment.modified,
+        relatedId: payment.name,
+        actor: payment.modified_by
+      }));
+      
+      // Transform rental data into activity items
+      const rentalActivities = (rentalsData.data || []).map(rental => ({
+        id: `rental-${rental.name}`,
+        type: 'lease',
+        title: `Rental ${rental.status === 'Active' ? 'Activated' : 'Updated'}: ${rental.name}`,
+        description: `Rental agreement for ${rental.property} with tenant ${rental.tenant} (${rental.start_date} to ${rental.end_date})`,
+        timestamp: rental.creation || rental.modified,
+        relatedId: rental.name,
+        actor: rental.modified_by
+      }));
+      
+      // Transform property data into activity items
+      const propertyActivities = (propertiesData.data || []).map(property => ({
+        id: `property-${property.name}`,
+        type: 'property',
+        title: `Property ${property.creation === property.modified ? 'Added' : 'Updated'}: ${property.title}`,
+        description: `Property ${property.title} (${property.name}) was ${property.creation === property.modified ? 'added' : 'updated'} with status: ${property.status}`,
+        timestamp: property.creation || property.modified,
+        relatedId: property.name,
+        actor: property.modified_by
+      }));
+      
+      // Transform user data into activity items
+      const tenantActivities = (usersData.data || []).map(user => ({
+        id: `tenant-${user.name}`,
+        type: 'tenant',
+        title: `Tenant ${user.creation === user.modified ? 'Added' : 'Updated'}: ${user.full_name}`,
+        description: `Tenant ${user.full_name} (${user.name}) was ${user.creation === user.modified ? 'added to' : 'updated in'} the system`,
+        timestamp: user.creation || user.modified,
+        relatedId: user.name,
+        actor: user.modified_by
+      }));
+      
+      // Combine all activities and sort by timestamp (newest first)
+      const allActivities = [
+        ...paymentActivities,
+        ...rentalActivities,
+        ...propertyActivities,
+        ...tenantActivities
+      ].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+      .slice(0, limit); // Limit to the requested number of activities
+      
+      return { success: true, data: allActivities };
+    } catch (error) {
+      console.error("Error fetching recent activities:", error);
+      return { success: false, error: 'Failed to fetch recent activities' };
+    }
+  },
 };

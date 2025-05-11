@@ -30,6 +30,7 @@ import TenantInfo from "./pages/TenantInfo";
 import PendingPayments from './pages/PendingPayments';
 import OAuthCallback from "./pages/OAuthCallback";
 import TenantDetail from "./pages/TenantDetail";
+import GenerateReports from "./pages/GenerateReports";
 
 const queryClient = new QueryClient();
 
@@ -88,6 +89,7 @@ const App = () => (
             <Route path="/users" element={<Users />} />
             <Route path="/tenants/create" element={<AddTenant />} />
             <Route path="/tenants/:id" element={<TenantDetail />} />
+            <Route path="/tenants/edit/:id" element={<EditTenant />} />
             <Route path="/rentals" element={<Rentals />} />
             <Route path="/rentals/expiring" element={<ExpiringLeases />} />
             <Route path="/rentals/:id" element={<ViewRental />} />
@@ -96,6 +98,7 @@ const App = () => (
             <Route path="/settings" element={<Profile />} />
             <Route path="/help" element={<About />} />
             <Route path="/pending-payments" element={<PendingPayments />} />
+            <Route path="/generate-reports" element={<GenerateReports />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

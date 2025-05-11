@@ -14,13 +14,30 @@ interface DashboardSummary {
 }
 
 interface UpcomingPayment {
-  name: string; // Add payment ID
+  name: string;
   tenant: string;
   property: string;
   unit?: string;
   amount: number;
   dueDate: string;
   month?: string;
+}
+
+interface ExpiringLease {
+  name: string;
+  property: string;
+  tenant: string;
+  end_date: string;
+  monthly_rent_tzs: number;
+}
+
+interface ActivityItem {
+  id: string;
+  type: 'payment' | 'lease' | 'tenant' | 'property' | 'maintenance';
+  title: string;
+  description: string;
+  timestamp: string;
+  relatedId?: string;
 }
 
 const AdminDashboard = () => {
@@ -32,8 +49,10 @@ const AdminDashboard = () => {
     activeRentals: 0
   });
   const [upcomingPayments, setUpcomingPayments] = useState<UpcomingPayment[]>([]);
+  const [expiringLeases, setExpiringLeases] = useState<ExpiringLease[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("payments");
+  const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -55,7 +74,7 @@ const AdminDashboard = () => {
             
             // Transform the data to match UpcomingPayment interface
             const upcomingPaymentsData = pendingPaymentsResult.data.map(payment => ({
-              name: payment.name, // Add payment ID for navigation
+              name: payment.name,
               tenant: payment.tenant_name || payment.tenant || "Unknown Tenant",
               property: payment.property_name || payment.property || payment.rental || "Unknown Property",
               amount: payment.amount_tzs,
@@ -66,6 +85,23 @@ const AdminDashboard = () => {
             setUpcomingPayments(upcomingPaymentsData);
           } else {
             setUpcomingPayments([]);
+          }
+          
+          // Fetch rentals to find expiring leases
+          const rentalsResult = await frappeClient.getRentals();
+          if (rentalsResult.success && rentalsResult.data) {
+            // Filter rentals that expire in the current month
+            const now = new Date();
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
+            
+            const expiringRentals = rentalsResult.data.filter(rental => {
+              const endDate = new Date(rental.end_date);
+              return endDate.getMonth() === currentMonth && 
+                     endDate.getFullYear() === currentYear;
+            });
+            
+            setExpiringLeases(expiringRentals);
           }
         } else {
           toast.error(dashboardData.error || "Failed to fetch dashboard data");
@@ -78,8 +114,29 @@ const AdminDashboard = () => {
       }
     };
 
+    const fetchRecentActivities = async () => {
+      try {
+        // You can implement this in your frappeClient
+        const activitiesResult = await frappeClient.getRecentActivities();
+        if (activitiesResult.success && activitiesResult.data) {
+          setRecentActivities(activitiesResult.data);
+        }
+      } catch (error) {
+        console.error("Error fetching recent activities:", error);
+      }
+    };
+
     fetchDashboardData();
+    fetchRecentActivities();
   }, []);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
+  };
 
   return (
     <DashboardLayout role="admin">
@@ -205,9 +262,47 @@ const AdminDashboard = () => {
                 </div>
               )
             ) : (
-              <div className="text-center py-8 text-gray-500">
-                No leases expiring soon
-              </div>
+              expiringLeases.length > 0 ? (
+                <div className="space-y-4">
+                  {expiringLeases.map((lease, index) => (
+                    <div key={index} className="flex justify-between items-center p-3 border rounded-md hover:bg-gray-50">
+                      <div>
+                        <p className="font-medium">{lease.tenant}</p>
+                        <p className="text-sm text-gray-500">{lease.property}</p>
+                        <p className="text-xs text-gray-400">Expires: {formatDate(lease.end_date)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-[#00b3d7]">
+                          TSh {lease.monthly_rent_tzs.toLocaleString()}/month
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="mt-1 text-xs"
+                          onClick={() => navigate(`/rentals/${lease.name}`)}
+                        >
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                  {expiringLeases.length > 5 && (
+                    <div className="text-center pt-2">
+                      <Button 
+                        variant="link" 
+                        onClick={() => navigate('/rentals/expiring')}
+                        className="text-[#00b3d7]"
+                      >
+                        View all expiring leases
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  No leases expiring this month
+                </div>
+              )
             )}
           </div>
         </div>
@@ -290,16 +385,57 @@ const AdminDashboard = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-medium">Recent Activity</h2>
-          <button className="text-gray-500">
-            -
-          </button>
+          <Button variant="ghost" size="sm" onClick={() => navigate('/activity-log')}>
+            View All
+          </Button>
         </div>
         
         <div className="bg-white rounded-md border border-gray-200">
-          {/* Activity items would go here */}
-          <div className="p-6 text-center text-gray-500">
-            No recent activity
-          </div>
+          {recentActivities.length > 0 ? (
+            <div className="divide-y divide-gray-100">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex items-start">
+                    <div className="mr-4 mt-1">
+                      {activity.type === 'payment' && <CreditCard className="h-5 w-5 text-green-500" />}
+                      {activity.type === 'lease' && <FileText className="h-5 w-5 text-blue-500" />}
+                      {activity.type === 'tenant' && <Users className="h-5 w-5 text-purple-500" />}
+                      {activity.type === 'property' && <Building className="h-5 w-5 text-orange-500" />}
+                      {activity.type === 'maintenance' && <AlertTriangle className="h-5 w-5 text-red-500" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-medium">{activity.title}</p>
+                      <p className="text-sm text-gray-500">{activity.description}</p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(activity.timestamp).toLocaleString()}
+                      </p>
+                    </div>
+                    {activity.relatedId && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => {
+                          const route = 
+                            activity.type === 'payment' ? `/payments/${activity.relatedId}` :
+                            activity.type === 'lease' ? `/rentals/${activity.relatedId}` :
+                            activity.type === 'tenant' ? `/tenants/${activity.relatedId}` :
+                            activity.type === 'property' ? `/properties/${activity.relatedId}` :
+                            `/maintenance/${activity.relatedId}`;
+                          navigate(route);
+                        }}
+                      >
+                        View
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-gray-500">
+              No recent activity
+            </div>
+          )}
         </div>
       </div>
     </DashboardLayout>

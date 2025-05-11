@@ -13,6 +13,7 @@ const menuConfig = {
     { label: 'Tenants', icon: <Users size={20} />, to: '/users' },
     { label: 'Leases', icon: <FileText size={20} />, to: '/rentals' },
     { label: 'Payments', icon: <CreditCard size={20} />, to: '/payments' },
+    { label: 'Reports', icon: <FileText size={20} />, to: '/generate-reports' },
     { label: 'Settings', icon: <Settings size={20} />, to: '/settings' },
     { label: 'Help', icon: <HelpCircle size={20} />, to: '/help' },
   ],

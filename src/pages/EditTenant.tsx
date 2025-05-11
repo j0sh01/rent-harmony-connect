@@ -8,6 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import Navbar from "@/components/Navbar";
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
+import Sidebar from "@/components/ui/Sidebar";
 
 const EditTenant: React.FC = () => {
   const navigate = useNavigate();
@@ -89,103 +90,106 @@ const EditTenant: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Edit Tenant</h1>
-          <Button variant="outline" onClick={() => navigate('/users')}>
-            Back to Tenants
-          </Button>
-        </div>
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <Sidebar role="admin" />
+      <div className="ml-[240px]">
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Edit Tenant</h1>
+            <Button variant="outline" onClick={() => navigate('/users')}>
+              Back to Tenants
+            </Button>
+          </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Tenant Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">Loading tenant information...</div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="first_name">First Name</Label>
-                    <Input 
-                      id="first_name" 
-                      name="first_name" 
-                      value={tenant.first_name} 
-                      onChange={handleChange} 
-                      required 
-                    />
+          <Card>
+            <CardHeader>
+              <CardTitle>Tenant Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-4">Loading tenant information...</div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="first_name">First Name</Label>
+                      <Input 
+                        id="first_name" 
+                        name="first_name" 
+                        value={tenant.first_name} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="last_name">Last Name</Label>
+                      <Input 
+                        id="last_name" 
+                        name="last_name" 
+                        value={tenant.last_name} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <Input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        value={tenant.email} 
+                        onChange={handleChange} 
+                        required 
+                        disabled
+                      />
+                      <p className="text-sm text-gray-500">Email cannot be changed</p>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="phone">Phone</Label>
+                      <Input 
+                        id="phone" 
+                        name="phone" 
+                        value={tenant.phone} 
+                        onChange={handleChange} 
+                      />
+                    </div>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="last_name">Last Name</Label>
-                    <Input 
-                      id="last_name" 
-                      name="last_name" 
-                      value={tenant.last_name} 
-                      onChange={handleChange} 
-                      required 
+                  <div className="flex items-center space-x-2 pt-4">
+                    <Switch 
+                      id="enabled" 
+                      checked={tenant.enabled}
+                      onCheckedChange={handleToggleEnabled}
                     />
+                    <Label htmlFor="enabled">Account Active</Label>
                   </div>
                   
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <Input 
-                      id="email" 
-                      name="email" 
-                      type="email" 
-                      value={tenant.email} 
-                      onChange={handleChange} 
-                      required 
-                      disabled
-                    />
-                    <p className="text-sm text-gray-500">Email cannot be changed</p>
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => navigate('/users')}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-harmony-500 hover:bg-harmony-600"
+                      disabled={saving}
+                    >
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input 
-                      id="phone" 
-                      name="phone" 
-                      value={tenant.phone} 
-                      onChange={handleChange} 
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-2 pt-4">
-                  <Switch 
-                    id="enabled" 
-                    checked={tenant.enabled}
-                    onCheckedChange={handleToggleEnabled}
-                  />
-                  <Label htmlFor="enabled">Account Active</Label>
-                </div>
-                
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => navigate('/users')}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="bg-harmony-500 hover:bg-harmony-600"
-                    disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };
