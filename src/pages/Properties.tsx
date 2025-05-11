@@ -8,6 +8,7 @@ import Sidebar from "@/components/ui/Sidebar";
 import { frappeClient, FRAPPE_URL } from "@/integrations/frappe/client";
 import { Building, MapPin, Bed, Bath, Square, Eye, Edit, Search, Grid, List } from 'lucide-react';
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Property {
   name: string;
@@ -30,6 +31,14 @@ const Properties = () => {
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [statusFilter, setStatusFilter] = useState<string>("All");
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Add function to handle view property
+  const handleViewProperty = (property: Property) => {
+    setSelectedProperty(property);
+    setIsDialogOpen(true);
+  };
 
   // Add this helper function to get the appropriate status badge styling
   const getStatusBadge = (status: string) => {
@@ -204,7 +213,7 @@ const Properties = () => {
                           variant="outline" 
                           size="sm" 
                           className="p-0 w-8 h-8"
-                          onClick={() => navigate(`/properties/${property.name}`)}
+                          onClick={() => handleViewProperty(property)}
                         >
                           <Eye size={16} />
                         </Button>
@@ -264,7 +273,7 @@ const Properties = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => navigate(`/properties/${property.name}`)}
+                          onClick={() => handleViewProperty(property)}
                         >
                           <Eye size={16} className="mr-1" />
                           View
@@ -286,6 +295,64 @@ const Properties = () => {
           )}
         </main>
       </div>
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>{selectedProperty?.title}</DialogTitle>
+          </DialogHeader>
+          
+          {selectedProperty && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="h-64 bg-gray-100 rounded-md overflow-hidden">
+                <img 
+                  src={selectedProperty.image ? `${FRAPPE_URL}${selectedProperty.image}` : "https://via.placeholder.com/300x200?text=No+Image"} 
+                  alt={selectedProperty.title}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Location</h3>
+                  <p className="mt-1">{selectedProperty.location}</p>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Price</h3>
+                  <p className="mt-1 font-bold text-lg">TSh {selectedProperty.price_tzs.toLocaleString()}/mo</p>
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Bedrooms</h3>
+                    <p className="mt-1">{selectedProperty.bedrooms}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Bathrooms</h3>
+                    <p className="mt-1">{selectedProperty.bathroom}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-500">Area</h3>
+                    <p className="mt-1">{selectedProperty.square_meters} m²</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500">Status</h3>
+                  <p className={`mt-1 inline-block px-2 py-1 rounded text-xs font-medium ${getStatusBadge(selectedProperty.status)}`}>
+                    {selectedProperty.status}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="md:col-span-2">
+                <h3 className="text-sm font-medium text-gray-500">Description</h3>
+                <p className="mt-1 text-gray-700">{selectedProperty.description}</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -14,6 +14,10 @@ const Navbar = () => {
   const { userName, userEmail, signOut } = useAuth() || { userName: 'User', userEmail: 'user@example.com', signOut: () => {} };
   const navigate = useNavigate();
 
+  // Ensure we have a valid userName
+  const displayName = userName || localStorage.getItem('userName') || 'User';
+  const displayEmail = userEmail || (localStorage.getItem('userEmail') || 'user@example.com');
+
   // Get user initials from name
   const getUserInitials = (name: string) => {
     if (!name) return "U";
@@ -38,11 +42,11 @@ const Navbar = () => {
           <DropdownMenuTrigger asChild>
             <button className="flex items-center">
               <div className="text-sm text-right mr-3">
-                <div className="text-[#00b3d7] font-medium">{userName}</div>
-                <div className="text-gray-500 text-xs">{userEmail}</div>
+                <div className="text-[#00b3d7] font-medium">{displayName}</div>
+                <div className="text-gray-500 text-xs">{displayEmail}</div>
               </div>
               <div className="h-8 w-8 rounded-full bg-[#00b3d7] flex items-center justify-center text-white font-medium cursor-pointer">
-                {getUserInitials(userName)}
+                {displayName ? getUserInitials(displayName) : "U"}
               </div>
             </button>
           </DropdownMenuTrigger>

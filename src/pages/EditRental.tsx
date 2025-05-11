@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import Sidebar from "@/components/ui/Sidebar";
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 
@@ -171,171 +172,174 @@ const EditRental: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Navbar />
-      <main className="flex-grow container mx-auto px-4 py-8">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold">Edit Rental</h1>
-          <Button variant="outline" onClick={() => navigate('/rentals')}>
-            Back to Rentals
-          </Button>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <CardTitle>Rental Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="text-center py-4">Loading rental information...</div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="property">Property</Label>
-                    <Select 
-                      value={rental.property} 
-                      onValueChange={(value) => handleSelectChange('property', value)}
+    <div className="min-h-screen bg-[#f8f9fa]">
+      <Sidebar role="admin" />
+      <div className="ml-[240px]">
+        <Navbar />
+        <main className="p-6">
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Edit Rental</h1>
+            <Button variant="outline" onClick={() => navigate('/rentals')}>
+              Back to Rentals
+            </Button>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Rental Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {loading ? (
+                <div className="text-center py-4">Loading rental information...</div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="property">Property</Label>
+                      <Select 
+                        value={rental.property} 
+                        onValueChange={(value) => handleSelectChange('property', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select property" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {properties.map((property) => (
+                            <SelectItem key={property.name} value={property.name}>
+                              {property.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="tenant">Tenant</Label>
+                      <Select 
+                        value={rental.tenant} 
+                        onValueChange={(value) => handleSelectChange('tenant', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select tenant" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {tenants.map((tenant) => (
+                            <SelectItem key={tenant.name} value={tenant.name}>
+                              {tenant.full_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="status">Status</Label>
+                      <Select 
+                        value={rental.status} 
+                        onValueChange={(value) => handleSelectChange('status', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Active">Active</SelectItem>
+                          <SelectItem value="Pending">Pending</SelectItem>
+                          <SelectItem value="Expired">Expired</SelectItem>
+                          <SelectItem value="Terminated">Terminated</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="frequency">Rental Period (Months)</Label>
+                      <Select 
+                        value={rental.frequency} 
+                        onValueChange={(value) => handleSelectChange('frequency', value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select period" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 Month</SelectItem>
+                          <SelectItem value="3">3 Months</SelectItem>
+                          <SelectItem value="6">6 Months</SelectItem>
+                          <SelectItem value="12">12 Months</SelectItem>
+                          <SelectItem value="24">24 Months</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="start_date">Start Date</Label>
+                      <Input 
+                        id="start_date" 
+                        name="start_date" 
+                        type="date" 
+                        value={rental.start_date} 
+                        onChange={(e) => handleDateChange('start_date', e.target.value)} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="end_date">End Date</Label>
+                      <Input 
+                        id="end_date" 
+                        name="end_date" 
+                        type="date" 
+                        value={rental.end_date} 
+                        onChange={(e) => handleDateChange('end_date', e.target.value)} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="monthly_rent_tzs">Monthly Rent (TZS)</Label>
+                      <Input 
+                        id="monthly_rent_tzs" 
+                        name="monthly_rent_tzs" 
+                        type="number" 
+                        value={rental.monthly_rent_tzs} 
+                        onChange={handleChange} 
+                        required 
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="total_rent_tzs">Total Rent (TZS)</Label>
+                      <Input 
+                        id="total_rent_tzs" 
+                        name="total_rent_tzs" 
+                        type="number" 
+                        value={rental.total_rent_tzs} 
+                        readOnly 
+                        className="bg-gray-50"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      onClick={() => navigate('/rentals')}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select property" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {properties.map((property) => (
-                          <SelectItem key={property.name} value={property.name}>
-                            {property.title}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="tenant">Tenant</Label>
-                    <Select 
-                      value={rental.tenant} 
-                      onValueChange={(value) => handleSelectChange('tenant', value)}
+                      Cancel
+                    </Button>
+                    <Button 
+                      type="submit" 
+                      className="bg-harmony-500 hover:bg-harmony-600"
+                      disabled={saving}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tenant" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {tenants.map((tenant) => (
-                          <SelectItem key={tenant.name} value={tenant.name}>
-                            {tenant.full_name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      {saving ? "Saving..." : "Save Changes"}
+                    </Button>
                   </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="status">Status</Label>
-                    <Select 
-                      value={rental.status} 
-                      onValueChange={(value) => handleSelectChange('status', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="Pending">Pending</SelectItem>
-                        <SelectItem value="Expired">Expired</SelectItem>
-                        <SelectItem value="Terminated">Terminated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="frequency">Rental Period (Months)</Label>
-                    <Select 
-                      value={rental.frequency} 
-                      onValueChange={(value) => handleSelectChange('frequency', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select period" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 Month</SelectItem>
-                        <SelectItem value="3">3 Months</SelectItem>
-                        <SelectItem value="6">6 Months</SelectItem>
-                        <SelectItem value="12">12 Months</SelectItem>
-                        <SelectItem value="24">24 Months</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="start_date">Start Date</Label>
-                    <Input 
-                      id="start_date" 
-                      name="start_date" 
-                      type="date" 
-                      value={rental.start_date} 
-                      onChange={(e) => handleDateChange('start_date', e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="end_date">End Date</Label>
-                    <Input 
-                      id="end_date" 
-                      name="end_date" 
-                      type="date" 
-                      value={rental.end_date} 
-                      onChange={(e) => handleDateChange('end_date', e.target.value)} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="monthly_rent_tzs">Monthly Rent (TZS)</Label>
-                    <Input 
-                      id="monthly_rent_tzs" 
-                      name="monthly_rent_tzs" 
-                      type="number" 
-                      value={rental.monthly_rent_tzs} 
-                      onChange={handleChange} 
-                      required 
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="total_rent_tzs">Total Rent (TZS)</Label>
-                    <Input 
-                      id="total_rent_tzs" 
-                      name="total_rent_tzs" 
-                      type="number" 
-                      value={rental.total_rent_tzs} 
-                      readOnly 
-                      className="bg-gray-50"
-                    />
-                  </div>
-                </div>
-                
-                <div className="flex justify-end space-x-2 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => navigate('/rentals')}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    className="bg-harmony-500 hover:bg-harmony-600"
-                    disabled={saving}
-                  >
-                    {saving ? "Saving..." : "Save Changes"}
-                  </Button>
-                </div>
-              </form>
-            )}
-          </CardContent>
-        </Card>
-      </main>
+                </form>
+              )}
+            </CardContent>
+          </Card>
+        </main>
+      </div>
     </div>
   );
 };

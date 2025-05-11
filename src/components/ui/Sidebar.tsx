@@ -29,16 +29,28 @@ const menuConfig = {
 const SidebarWrapper = ({ role = 'admin' }) => {
   const location = useLocation();
   const menu = menuConfig[role] || menuConfig.admin;
-  const { userName } = useAuth() || { userName: 'User' };
-
-  // Get user initials from name
+  const { user, userName } = useAuth() || { user: null, userName: 'User' };
+  
+  // Ensure we have a valid userName
+  const displayName = userName || localStorage.getItem('userName') || 
+                     (user && user.name) || 
+                     (user && user.email) || 
+                     'User';
+  
+  // Get user initials from name with improved logging
   const getUserInitials = (name: string) => {
+    console.log("Sidebar - Getting initials for name:", name);
     if (!name) return "U";
     const nameParts = name.split(" ");
     if (nameParts.length === 1) return nameParts[0].charAt(0).toUpperCase();
-    return (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+    const initials = (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+    console.log("Sidebar - Calculated initials:", initials);
+    return initials;
   };
-
+  
+  // Log the userName being used
+  console.log("Sidebar - Using userName:", displayName);
+  
   return (
     <div className="fixed left-0 top-0 h-full w-[240px] bg-white border-r border-gray-200 flex flex-col z-40">
       <div className="h-16 flex items-center px-4 border-b">
@@ -73,10 +85,10 @@ const SidebarWrapper = ({ role = 'admin' }) => {
       <div className="border-t p-4">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-[#00b3d7] flex items-center justify-center text-white font-medium">
-            {getUserInitials(userName)}
+            {displayName ? getUserInitials(displayName) : "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{userName}</p>
+            <p className="text-sm font-medium truncate">{displayName}</p>
             <p className="text-xs text-gray-500 truncate">
               {role.charAt(0).toUpperCase() + role.slice(1)}
             </p>

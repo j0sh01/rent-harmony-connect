@@ -9,6 +9,7 @@ import Sidebar from "@/components/ui/Sidebar"; // Import Sidebar
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 
 const Profile: React.FC = () => {
   const navigate = useNavigate();
@@ -24,8 +25,40 @@ const Profile: React.FC = () => {
     new_password: '',
     confirm_password: ''
   });
+  const [fullName, setFullName] = useState<string>('');
+
+  // Add this function to get user initials
+  const getUserInitials = (name: string) => {
+    console.log("Getting initials for name:", name);
+    
+    if (!name || name.trim() === '') {
+      console.log("Name is empty, returning U");
+      return "U";
+    }
+    
+    const nameParts = name.trim().split(/\s+/);
+    console.log("Name parts:", nameParts);
+    
+    if (nameParts.length === 0 || (nameParts.length === 1 && nameParts[0] === '')) {
+      console.log("No valid name parts, returning U");
+      return "U";
+    }
+    
+    if (nameParts.length === 1) {
+      const initial = nameParts[0].charAt(0).toUpperCase();
+      console.log("Single name part, returning initial:", initial);
+      return initial;
+    }
+    
+    const initials = (nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)).toUpperCase();
+    console.log("Multiple name parts, returning initials:", initials);
+    return initials;
+  };
 
   useEffect(() => {
+    console.log("Current user data:", user);
+    console.log("Current profile data:", profile);
+    
     // Check if user is authenticated
     const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
     
@@ -39,19 +72,53 @@ const Profile: React.FC = () => {
       try {
         // If we're using the demo admin account, just use the localStorage data
         if (user.email === "admin@rentalflow-pro.com") {
+          const userName = localStorage.getItem('userName') || 'Admin User';
+          const nameParts = userName.split(' ');
+          
           setProfile({
-            first_name: user.name.split(' ')[0] || 'Admin',
-            last_name: user.name.split(' ')[1] || 'User',
+            first_name: nameParts[0] || 'Admin',
+            last_name: nameParts.slice(1).join(' ') || 'User',
             email: user.email,
             phone: '',
             current_password: '',
             new_password: '',
             confirm_password: ''
           });
+          
+          console.log("Set profile for demo admin:", {
+            first_name: nameParts[0] || 'Admin',
+            last_name: nameParts.slice(1).join(' ') || 'User'
+          });
+          
           setLoading(false);
           return;
         }
         
+        // For regular users, use the email from the user object
+        console.log("Fetching profile for email:", user.email);
+        
+        // If we don't have user details from Frappe yet, use the name from localStorage
+        const userName = localStorage.getItem('userName');
+        if (userName) {
+          const nameParts = userName.split(' ');
+          
+          setProfile({
+            first_name: nameParts[0] || '',
+            last_name: nameParts.slice(1).join(' ') || '',
+            email: user.email,
+            phone: '',
+            current_password: '',
+            new_password: '',
+            confirm_password: ''
+          });
+          
+          console.log("Using profile from localStorage:", {
+            first_name: nameParts[0] || '',
+            last_name: nameParts.slice(1).join(' ') || ''
+          });
+        }
+        
+        // Still try to fetch from Frappe
         const result = await frappeClient.getUserDetails();
         if (result.success && result.data) {
           setProfile({
@@ -63,7 +130,9 @@ const Profile: React.FC = () => {
             new_password: '',
             confirm_password: ''
           });
+          console.log("Profile fetched from Frappe:", result.data);
         } else {
+          console.error("Failed to fetch profile from Frappe:", result.error);
           toast.error(result.error || "Failed to fetch profile");
         }
       } catch (error) {
@@ -76,6 +145,24 @@ const Profile: React.FC = () => {
 
     fetchUserProfile();
   }, [user, navigate]);
+
+  useEffect(() => {
+    // Set the full name whenever profile data changes
+    if (profile.first_name || profile.last_name) {
+      const name = `${profile.first_name} ${profile.last_name}`.trim();
+      setFullName(name);
+      console.log("Set full name:", name);
+    } else if (user?.name) {
+      setFullName(user.name);
+      console.log("Set full name from user:", user.name);
+    } else {
+      const storedName = localStorage.getItem('userName');
+      if (storedName) {
+        setFullName(storedName);
+        console.log("Set full name from localStorage:", storedName);
+      }
+    }
+  }, [profile, user]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -172,6 +259,15 @@ const Profile: React.FC = () => {
                   <div className="text-center py-4">Loading profile information...</div>
                 ) : (
                   <form onSubmit={handleUpdateProfile} className="space-y-4">
+                    <div className="flex justify-center mb-4">
+                      <Avatar className="h-24 w-24">
+                        <AvatarFallback 
+                          className="bg-[#e6f7ff] text-[#00b3d7] text-3xl font-medium"
+                        >
+                          {fullName ? getUserInitials(fullName) : "U"}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
                     <div className="space-y-2">
                       <Label htmlFor="first_name">First Name</Label>
                       <Input 

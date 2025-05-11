@@ -85,12 +85,12 @@ const Payments: React.FC = () => {
         <main className="p-6">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold">Payment Records</h1>
-            <Button 
+            {/* <Button 
               onClick={() => navigate('/payments/record')}
               className="bg-harmony-500 hover:bg-harmony-600"
             >
               Record New Payment
-            </Button>
+            </Button> */}
           </div>
 
           <Card>

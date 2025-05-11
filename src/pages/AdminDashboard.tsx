@@ -395,9 +395,6 @@ const AdminDashboard = () => {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-medium">Recent Activity</h2>
-          <Button variant="ghost" size="sm" onClick={() => navigate('/activity-log')}>
-            View All
-          </Button>
         </div>
         
         <div className="bg-white rounded-md border border-gray-200">
@@ -425,13 +422,19 @@ const AdminDashboard = () => {
                         variant="ghost" 
                         size="sm"
                         onClick={() => {
+                          // Check if the route exists before navigating
                           const route = 
-                            activity.type === 'payment' ? `/payments/${activity.relatedId}` :
+                            activity.type === 'payment' ? `/pending-payments` : // Navigate to payments list instead of individual payment
                             activity.type === 'lease' ? `/rentals/${activity.relatedId}` :
                             activity.type === 'tenant' ? `/tenants/${activity.relatedId}` :
-                            activity.type === 'property' ? `/properties/${activity.relatedId}` :
-                            `/maintenance/${activity.relatedId}`;
-                          navigate(route);
+                            activity.type === 'property' ? `/properties` : // Navigate to properties list instead of individual property
+                            null; // Set to null if no valid route
+                          
+                          if (route) {
+                            navigate(route);
+                          } else {
+                            toast.error("Details view not available");
+                          }
                         }}
                       >
                         View
