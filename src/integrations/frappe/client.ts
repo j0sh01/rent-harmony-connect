@@ -1019,21 +1019,32 @@ export const frappeClient = {
   // Alternative method that doesn't rely on custom API endpoint
   getTenantRentalsByEmail: async (email: string): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
+      const tokens = tokenStorage.getTokens();
+      if (!tokens) {
+        return { success: false, error: 'Not authenticated' };
+      }
+      
+      // Directly use the email as the tenant identifier
       const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?filters=[["tenant","=","${email}"]]&fields=["name","property","tenant","status","monthly_rent_tzs","total_rent_tzs","start_date","end_date","frequency"]`, {
         method: 'GET',
-        headers: getAuthHeaders()
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Accept': 'application/json'
+        }
       });
       
       if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to fetch rentals:", errorData);
         return { success: false, error: `Failed to fetch rentals: ${response.statusText}` };
       }
       
       const data = await response.json();
       console.log("Tenant rentals from standard API:", data);
       
-      return { success: true, data: data.data };
+      return { success: true, data: data.data || [] };
     } catch (error) {
-      console.error("Error fetching tenant rentals:", error);
+      console.error("Error in getTenantRentalsByEmail:", error);
       return { success: false, error: 'Failed to fetch tenant rentals' };
     }
   },
@@ -1146,4 +1157,126 @@ export const frappeClient = {
       return { success: false, error: 'Failed to fetch recent activities' };
     }
   },
+
+  getTenantDetailsByEmail: async (email: string): Promise<{ success: boolean; data?: any; error?: string }> => {
+    try {
+      const tokens = tokenStorage.getTokens();
+      if (!tokens) {
+        return { success: false, error: 'Not authenticated' };
+      }
+      
+      // Skip Tenant doctype lookup and directly use User doctype
+      const userResponse = await fetch(`${FRAPPE_URL}/api/resource/User/${email}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${tokens.access_token}`,
+          'Accept': 'application/json'
+        }
+      });
+      
+      const userData = await userResponse.json();
+      
+      if (!userResponse.ok) {
+        console.error("Failed to fetch user details:", userData);
+        return { success: false, error: userData.message || 'Failed to fetch user details' };
+      }
+      
+      // Construct a full name from first_name and last_name
+      const fullName = [userData.data.first_name, userData.data.last_name]
+        .filter(Boolean)
+        .join(' ');
+        
+      return { 
+        success: true, 
+        data: {
+          name: userData.data.name,
+          full_name: fullName || userData.data.name,
+          email: userData.data.email,
+          phone: userData.data.phone
+        }
+      };
+    } catch (error) {
+      console.error("Error in getTenantDetailsByEmail:", error);
+      return { success: false, error: 'Failed to fetch tenant details' };
+    }
+  },
+
+  createMaintenanceRequest: async (requestData: any): Promise<{ success: boolean; data?: any; error?: string }> => {
+    try {
+      const response = await fetch(`${FRAPPE_URL}/api/resource/Maintenance Request`, {
+        method: 'POST',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          data: requestData
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        const errorMsg = data.message || data._server_messages || 'Failed to create maintenance request';
+        return { success: false, error: errorMsg };
+      }
+      
+      return { success: true, data: data.data };
+    } catch (error) {
+      console.error("Error creating maintenance request:", error);
+      return { success: false, error: 'Network error occurred' };
+    }
+  },
+
+  getMaintenanceRequests: async (): Promise<{ success: boolean; data?: any; error?: string }> => {
+    try {
+      const url = `${FRAPPE_URL}/api/resource/Maintenance Request`;
+      console.log("Fetching all Maintenance Requests from URL:", url); // Debugging log
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.message || data._server_messages || 'Failed to fetch maintenance requests';
+        console.error("Error Response from Maintenance Requests API:", data); // Debugging log
+        return { success: false, error: errorMsg };
+      }
+
+      console.log("Raw Maintenance Requests Data:", data.data); // Debugging log
+
+      return { success: true, data: data.data };
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error);
+      return { success: false, error: 'Network error occurred' };
+    }
+  },
+
+  updateMaintenanceRequest: async (requestId: string, updateData: any): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const response = await fetch(`${FRAPPE_URL}/api/resource/Maintenance Request/${requestId}`, {
+        method: 'PUT',
+        headers: {
+          ...getAuthHeaders(),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: updateData }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        const errorMsg = data.message || data._server_messages || 'Failed to update maintenance request';
+        return { success: false, error: errorMsg };
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error("Error updating maintenance request:", error);
+      return { success: false, error: 'Network error occurred' };
+    }
+  }
 };

@@ -48,10 +48,10 @@ const Auth = () => {
         console.log("User roles type:", typeof data?.roles);
         console.log("User roles value:", JSON.stringify(data?.roles, null, 2));
 
-        // Check for specific roles regardless of other roles the user might have
-        const hasLandlordRole = Array.isArray(data?.roles) && data.roles.some(role => role === 'Landlord');
-        const hasSystemManagerRole = Array.isArray(data?.roles) && data.roles.some(role => role === 'System Manager');
-        const hasTenantRole = Array.isArray(data?.roles) && data.roles.some(role => role === 'Tenant');
+        // Check for specific roles
+        const hasLandlordRole = Array.isArray(data?.roles) && data.roles.includes('Landlord');
+        const hasSystemManagerRole = Array.isArray(data?.roles) && data.roles.includes('System Manager');
+        const hasTenantRole = Array.isArray(data?.roles) && data.roles.includes('Tenant');
 
         console.log("Has Landlord role:", hasLandlordRole);
         console.log("Has System Manager role:", hasSystemManagerRole);
@@ -61,13 +61,13 @@ const Auth = () => {
         let userRole = 'user'; // Default role
         let redirectPath = '/auth';
 
-        // If user has Tenant role, they should go to Tenant Dashboard regardless of other roles
+        // Role prioritization logic:
+        // 1. If user has Tenant role, they go to Tenant Dashboard regardless of other roles
+        // 2. If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
         if (hasTenantRole) {
           userRole = 'tenant';
           redirectPath = '/tenant-dashboard';
-        } 
-        // If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
-        else if (hasLandlordRole || hasSystemManagerRole) {
+        } else if (hasLandlordRole || hasSystemManagerRole) {
           userRole = 'admin';
           redirectPath = '/admin-dashboard';
         }

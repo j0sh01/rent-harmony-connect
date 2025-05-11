@@ -5,6 +5,9 @@ import { Users, Building, CreditCard, FileText, AlertTriangle, Plus } from 'luci
 import { frappeClient } from "@/integrations/frappe/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Clock } from "lucide-react";
 
 interface DashboardSummary {
   totalTenants: number;
@@ -53,6 +56,8 @@ const AdminDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("payments");
   const [recentActivities, setRecentActivities] = useState<ActivityItem[]>([]);
+  const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+  const [loadingRequests, setLoadingRequests] = useState(false);
 
   // Add this function to format currency values
   const formatCurrency = (amount: number) => {
@@ -140,12 +145,48 @@ const AdminDashboard = () => {
     fetchRecentActivities();
   }, []);
 
+  // Fetch all maintenance requests
+  const fetchMaintenanceRequests = async () => {
+    setLoadingRequests(true);
+    try {
+      const result = await frappeClient.getMaintenanceRequests();
+      if (result.success && result.data) {
+        setMaintenanceRequests(result.data);
+      } else {
+        console.error("Failed to fetch maintenance requests:", result.error);
+      }
+    } catch (error) {
+      console.error("Error fetching maintenance requests:", error);
+    } finally {
+      setLoadingRequests(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMaintenanceRequests();
+  }, []);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric'
     });
+  };
+
+  const updateMaintenanceRequestStatus = async (requestId: string, newStatus: string) => {
+    try {
+      const result = await frappeClient.updateMaintenanceRequest(requestId, { status: newStatus });
+      if (result.success) {
+        toast.success(`Maintenance request marked as ${newStatus}`);
+        fetchMaintenanceRequests(); // Refresh the list
+      } else {
+        toast.error(result.error || "Failed to update maintenance request");
+      }
+    } catch (error) {
+      console.error("Error updating maintenance request:", error);
+      toast.error("An unexpected error occurred");
+    }
   };
 
   return (
@@ -385,9 +426,86 @@ const AdminDashboard = () => {
             </h2>
           </div>
           
-          <div className="p-6 text-center text-gray-500">
-            No maintenance alerts at this time
-          </div>
+          {loadingRequests ? (
+            <div className="text-center py-8">
+              <p>Loading maintenance requests...</p>
+            </div>
+          ) : maintenanceRequests.length === 0 ? (
+            <div className="text-center py-8">
+              <Clock className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No maintenance requests</h3>
+              <p className="text-gray-500">There are no maintenance requests at the moment.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {maintenanceRequests.map((request: any) => (
+                <div key={request.name} className="border rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-medium">{request.title || "Untitled Request"}</h3>
+                    <Badge
+                      className={
+                        request.status === 'Open'
+                          ? 'bg-blue-500'
+                          : request.status === 'In Progress'
+                          ? 'bg-yellow-500'
+                          : request.status === 'Completed'
+                          ? 'bg-green-500'
+                          : 'bg-red-500'
+                      }
+                    >
+                      {request.status || "Unknown Status"}
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-gray-500 mb-2">
+                    <span className="font-medium">Category:</span> {request.category || "N/A"} |{' '}
+                    <span className="font-medium ml-2">Priority:</span> {request.priority || "N/A"}
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">{request.description || "No description provided."}</p>
+                  {request.resolution_date && (
+                    <div className="text-sm text-gray-500 mb-2">
+                      <span className="font-medium">Resolved On:</span>{' '}
+                      {new Date(request.resolution_date).toLocaleString()}
+                    </div>
+                  )}
+                  {request.resolution_notes && (
+                    <div className="text-sm text-gray-500">
+                      <span className="font-medium">Resolution Notes:</span> {request.resolution_notes}
+                    </div>
+                  )}
+                  <div className="text-xs text-gray-400">
+                    Submitted on{' '}
+                    {request.creation
+                      ? new Date(request.creation).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      : "Unknown Date"}
+                  </div>
+                  <div className="mt-4 flex space-x-2">
+                    {request.status !== 'Completed' && (
+                      <Button
+                        size="sm"
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white"
+                        onClick={() => updateMaintenanceRequestStatus(request.name, 'In Progress')}
+                      >
+                        Mark as In Progress
+                      </Button>
+                    )}
+                    {request.status !== 'Completed' && (
+                      <Button
+                        size="sm"
+                        className="bg-green-500 hover:bg-green-600 text-white"
+                        onClick={() => updateMaintenanceRequestStatus(request.name, 'Completed')}
+                      >
+                        Mark as Completed
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
       

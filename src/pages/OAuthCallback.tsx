@@ -44,19 +44,29 @@ const OAuthCallback = () => {
             localStorage.setItem('userName', userInfo.name || userInfo.email?.split('@')[0] || 'User');
             localStorage.setItem('isAuthenticated', 'true');
             
-            const roles = userInfo.roles || [];
+            // Ensure roles is an array
+            const roles = Array.isArray(userInfo.roles) ? userInfo.roles : 
+                         (userInfo.roles ? [userInfo.roles] : []);
             console.log("User roles:", roles);
             
             let userRole = 'user';
             let redirectPath = '/auth';
             
-            // If user has Tenant role, they should go to Tenant Dashboard regardless of other roles
-            if (roles.includes('Tenant')) {
+            // Role prioritization logic:
+            // 1. If user has Tenant role, they go to Tenant Dashboard regardless of other roles
+            // 2. If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
+            const hasTenantRole = roles.includes('Tenant');
+            const hasLandlordRole = roles.includes('Landlord');
+            const hasSystemManagerRole = roles.includes('System Manager');
+            
+            console.log("Has Tenant role:", hasTenantRole);
+            console.log("Has Landlord role:", hasLandlordRole);
+            console.log("Has System Manager role:", hasSystemManagerRole);
+            
+            if (hasTenantRole) {
               userRole = 'tenant';
               redirectPath = '/tenant-dashboard';
-            } 
-            // If user has Landlord or System Manager role (but not Tenant), they go to Admin Dashboard
-            else if (roles.includes('System Manager') || roles.includes('Landlord')) {
+            } else if (hasLandlordRole || hasSystemManagerRole) {
               userRole = 'admin';
               redirectPath = '/admin-dashboard';
             }

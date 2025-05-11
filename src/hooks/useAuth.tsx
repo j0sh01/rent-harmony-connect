@@ -32,11 +32,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userEmail = localStorage.getItem('userEmail') || '';
       const userRole = localStorage.getItem('userRole') || '';
       
+      console.log("Auth Provider - Setting user from localStorage:", {
+        name: userName,
+        email: userEmail,
+        role: userRole
+      });
+      
       setUser({
         name: userName,
         email: userEmail,
         role: userRole
       });
+    } else {
+      console.log("Auth Provider - User not authenticated");
+      setUser(null);
     }
     
     setLoading(false);
@@ -58,33 +67,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 };
 
 export const useAuth = () => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const context = useContext(AuthContext);
   
-  // Add this to ensure userName is always available
-  const userName = localStorage.getItem('userName') || 
-                  (user && user.name) || 
-                  (user && user.email) || 
-                  'User';
+  if (!context) {
+    // If we're outside the provider, create a minimal implementation
+    const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
+    const userEmail = localStorage.getItem('userEmail') || '';
+    const userName = localStorage.getItem('userName') || 'User';
+    const userRole = localStorage.getItem('userRole') || '';
+    
+    return {
+      user: isAuthenticated ? {
+        name: userName,
+        email: userEmail,
+        role: userRole
+      } : null,
+      loading: false,
+      signOut: () => {
+        localStorage.removeItem('isAuthenticated');
+        localStorage.removeItem('userName');
+        localStorage.removeItem('userEmail');
+        localStorage.removeItem('userRole');
+      }
+    };
+  }
   
-  // Make sure to include userName in your return value
-  return {
-    user,
-    userName, // Add this line
-    isAuthenticated,
-    signIn: () => {
-      localStorage.setItem('isAuthenticated', 'true');
-      setIsAuthenticated(true);
-    },
-    signOut: () => {
-      localStorage.removeItem('isAuthenticated');
-      localStorage.removeItem('userName');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userRole');
-      setIsAuthenticated(false);
-      setUser(null);
-    },
-    loading
-  };
+  return context;
 };
