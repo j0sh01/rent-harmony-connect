@@ -355,7 +355,7 @@ export const frappeClient = {
   // Rental methods
   getRentals: async (): Promise<{ success: boolean; data?: any[]; error?: string }> => {
     try {
-      const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?fields=["name","property","tenant","status","monthly_rent_tzs","total_rent_tzs","start_date","end_date","frequency"]`, {
+      const response = await fetch(`${FRAPPE_URL}/api/resource/Rental?fields=["name","property_name","tenant_name","status","monthly_rent_tzs","total_rent_tzs","start_date","end_date","frequency"]`, {
         method: 'GET',
         headers: getAuthHeaders()
       });

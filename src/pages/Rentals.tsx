@@ -12,8 +12,10 @@ import Sidebar from "@/components/ui/Sidebar";
 
 interface Rental {
   name: string;
-  property: string;
+  property: string; 
+  property_name: string;
   tenant: string;
+  tenant_name: string;
   status: string;
   monthly_rent_tzs: number;
   total_rent_tzs?: number;
@@ -134,8 +136,8 @@ const Rentals: React.FC = () => {
                   <TableBody>
                     {rentals.map((rental) => (
                       <TableRow key={rental.name}>
-                        <TableCell>{rental.property}</TableCell>
-                        <TableCell>{rental.tenant}</TableCell>
+                        <TableCell>{rental.property_name}</TableCell>
+                        <TableCell>{rental.tenant_name}</TableCell>
                         <TableCell>
                           {formatDate(rental.start_date)} - {formatDate(rental.end_date)}
                         </TableCell>

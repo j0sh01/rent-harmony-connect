@@ -16,7 +16,9 @@ import { toast } from "sonner";
 interface Rental {
   name: string;
   property: string;
+  property_name: string;
   tenant: string;
+  tenant_name: string;
   status: string;
   monthly_rent_tzs: number;
   total_rent_tzs?: number;
@@ -252,11 +254,11 @@ const ViewRental: React.FC = () => {
                     <div className="space-y-4">
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Property</h3>
-                        <p className="mt-1 text-lg">{rental.property}</p>
+                        <p className="mt-1 text-lg">{rental.property_name}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Tenant</h3>
-                        <p className="mt-1 text-lg">{rental.tenant}</p>
+                        <p className="mt-1 text-lg">{rental.tenant_name}</p>
                       </div>
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Status</h3>
